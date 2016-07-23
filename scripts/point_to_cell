@@ -4,7 +4,7 @@ import rospy
 from geometry_msgs.msg import PointStamped
 
 def callback(msg):
-    resolution = rospy.get_param('/move_base/global_costmap/resolution')
+    resolution = rospy.get_param('/global_costmap/costmap/resolution')
     rospy.loginfo("%d,%d", msg.point.x/resolution, msg.point.y/resolution)
 
 if __name__ == '__main__':
