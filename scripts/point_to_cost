@@ -14,6 +14,8 @@ class PointToCost:
         self.current_map_data = None
         self.w = 0
         self.h = 0
+        self.x0 = 0
+        self.y0 = 0
 
         rospy.init_node('point_to_cell')
         rospy.Subscriber('clicked_point', PointStamped, self.clickCB)
@@ -23,21 +25,32 @@ class PointToCost:
 
     def clickCB(self, msg):
         if self.current_map_data:
-            print 'hi'
             resolution = rospy.get_param(costmap_name + "/resolution")
-            x = int(msg.point.x / resolution)
-            y = int(msg.point.y / resolution)
+            x = int((msg.point.x - self.x0) / resolution)
+            y = int((msg.point.y - self.y0) / resolution)
             i = self.w * y + x
-            rospy.loginfo("%d,%d\t %d", x, y, self.current_map_data[i])
+            cost = self.current_map_data[i]
+
+            if cost == -1:
+                cost = 256
+            if cost == 100:
+                cost = 255
+            if cost == 99:
+                cost = 254
+            if cost == 98:
+                cost = 128
+
+            rospy.loginfo("%d,%d\t %d", x, y, cost)
 
     def costmapCB(self, msg):
         self.w = msg.info.width
         self.h = msg.info.height
+        self.x0 = msg.info.origin.position.x
+        self.y0 = msg.info.origin.position.y
         self.current_map_data = msg.data
 
     def updatesCB(self, msg):
-        pass
-        #self.current_map_data = msg.data
+        self.current_map_data = msg.data
 
 if __name__ == '__main__':
     if (len(sys.argv) != 2):
