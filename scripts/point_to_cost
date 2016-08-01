@@ -1,0 +1,48 @@
+#!/usr/bin/python
+
+import rospy
+import sys
+from geometry_msgs.msg import PointStamped
+from nav_msgs.msg import OccupancyGrid
+from map_msgs.msg import OccupancyGridUpdate
+import numpy as np
+
+class PointToCost:
+
+    def __init__(self, costmap_name):
+        self.costmap_name = costmap_name
+        self.current_map_data = None
+        self.w = 0
+        self.h = 0
+
+        rospy.init_node('point_to_cell')
+        rospy.Subscriber('clicked_point', PointStamped, self.clickCB)
+        rospy.Subscriber(self.costmap_name + "/costmap", OccupancyGrid, self.costmapCB)
+        rospy.Subscriber(self.costmap_name + "/costmap_updates", OccupancyGridUpdate, self.updatesCB)
+        rospy.spin()
+
+    def clickCB(self, msg):
+        if self.current_map_data:
+            print 'hi'
+            resolution = rospy.get_param(costmap_name + "/resolution")
+            x = int(msg.point.x / resolution)
+            y = int(msg.point.y / resolution)
+            i = self.w * y + x
+            rospy.loginfo("%d,%d\t %d", x, y, self.current_map_data[i])
+
+    def costmapCB(self, msg):
+        self.w = msg.info.width
+        self.h = msg.info.height
+        self.current_map_data = msg.data
+
+    def updatesCB(self, msg):
+        pass
+        #self.current_map_data = msg.data
+
+if __name__ == '__main__':
+    if (len(sys.argv) != 2):
+        print "USAGE: rosrun point_to_cell /foor/bar/costmap"
+
+    else:
+        costmap_name = sys.argv[1]
+        ptc = PointToCost(costmap_name)

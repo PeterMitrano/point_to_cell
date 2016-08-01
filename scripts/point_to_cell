@@ -1,14 +1,22 @@
 #!/usr/bin/python
 
 import rospy
+import sys
 from geometry_msgs.msg import PointStamped
 
+resolution_name = None
+
 def callback(msg):
-    resolution = rospy.get_param('/global_costmap/costmap/resolution')
+    resolution = rospy.get_param(resolution_name)
     rospy.loginfo("%d,%d", msg.point.x/resolution, msg.point.y/resolution)
 
 if __name__ == '__main__':
-    rospy.init_node('point_to_cell')
-    rospy.Subscriber('clicked_point', PointStamped, callback)
-    rospy.spin()
+    if (len(sys.argv) != 2):
+        print "USAGE: rosrun point_to_cell /foor/bar/costmap/resolution"
+
+    else:
+        resolution_name = sys.argv[1]
+        rospy.init_node('point_to_cell')
+        rospy.Subscriber('clicked_point', PointStamped, callback)
+        rospy.spin()
 
