@@ -33,14 +33,10 @@ class PointToCost:
 
             if cost == -1:
                 cost = 256
-            if cost == 100:
-                cost = 255
-            if cost == 99:
-                cost = 254
-            if cost == 98:
-                cost = 128
+            else:
+                cost = int((255.0 * cost) / 100.0)
 
-            rospy.loginfo("%d,%d\t %d", x, y, cost)
+            print "%fm (%d), %fm (%d)\t %d" % (msg.point.x, x, msg.point.y, y, cost)
 
     def costmapCB(self, msg):
         self.w = msg.info.width
