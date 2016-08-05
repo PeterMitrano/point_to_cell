@@ -1,0 +1,37 @@
+#!/usr/bin/python
+
+import rospy
+from demonstration_layer_msgs.srv import Cost
+from recovery_supervisor_msgs.msg import PosTimeGoalFeature
+
+class TestCost:
+
+    def __init__(self):
+        rospy.init_node('test_cost')
+
+        while not rospy.is_shutdown():
+
+            feat = PosTimeGoalFeature()
+            feat.x = float(raw_input("x: "))
+            feat.y = float(raw_input("y: "))
+            feat.theta = float(raw_input("theta: "))
+            feat.hour = int(raw_input("hour: "))
+            feat.goal = int(raw_input("goal: "))
+            cell_x = int(raw_input("cell_x: "))
+            cell_y = int(raw_input("cell_y: "))
+
+            # call service
+            cost_serv = rospy.ServiceProxy('/move_base/global_costmap/demo_layer/cost', Cost)
+            response = cost_serv(cell_x, cell_y, feat)
+
+            if response.exists:
+                rospy.loginfo("Cost: %i" % response.cost)
+            else:
+                rospy.loginfo("no weights for %i,%i", cell_x, cell_y)
+
+
+    def weightsCB(self, msg):
+        self.msg = msg
+
+if __name__ == '__main__':
+    tc = TestCost()
