@@ -7,6 +7,8 @@ from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
 import numpy as np
 
+macrocell_size = 4
+
 class PointToCost:
 
     def __init__(self, costmap_name):
@@ -17,7 +19,7 @@ class PointToCost:
         self.x0 = 0
         self.y0 = 0
 
-        rospy.init_node('point_to_cell')
+        rospy.init_node('point_to_cost')
         rospy.Subscriber('clicked_point', PointStamped, self.clickCB)
         rospy.Subscriber(self.costmap_name + "/costmap", OccupancyGrid, self.costmapCB)
         rospy.Subscriber(self.costmap_name + "/costmap_updates", OccupancyGridUpdate, self.updatesCB)
@@ -36,7 +38,7 @@ class PointToCost:
             else:
                 cost = int((255.0 * cost) / 100.0)
 
-            print "%fm (%d), %fm (%d)\t %d" % (msg.point.x, x, msg.point.y, y, cost)
+            print "%fm (%d)[%d], %fm (%d)[%d]\t %d" % (msg.point.x, x, x/macrocell_size, msg.point.y, y, y/macrocell_size, cost)
 
     def costmapCB(self, msg):
         self.w = msg.info.width

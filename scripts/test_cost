@@ -25,7 +25,8 @@ class TestCost:
             response = cost_serv(cell_x, cell_y, feat)
 
             if response.exists:
-                rospy.loginfo("Cost: %i" % response.cost)
+                rospy.loginfo("Total Cost: %i\t FeatureCosts: %f,%f,%f" %
+                        (response.cost, response.xytheta_cost, response.stamp_cost, response.goal_cost))
             else:
                 rospy.loginfo("no weights for %i,%i", cell_x, cell_y)
 
