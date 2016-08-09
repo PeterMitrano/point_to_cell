@@ -1,0 +1,71 @@
+#!/usr/bin/python
+
+import os
+import rospy
+import sys
+import time
+from geometry_msgs.msg import PointStamped
+from nav_msgs.msg import OccupancyGrid
+from map_msgs.msg import OccupancyGridUpdate
+import numpy as np
+
+macrocell_size = 4
+
+class PointToCost:
+
+    def __init__(self, costmap_name):
+        self.costmap_name = costmap_name
+        self.current_map_data = None
+        self.w = 0
+        self.h = 0
+        self.x0 = 0
+        self.y0 = 0
+        self.pts = []
+
+        rospy.init_node('watch_cells')
+        rospy.Subscriber('clicked_point', PointStamped, self.clickCB)
+        rospy.Subscriber(self.costmap_name + "/costmap", OccupancyGrid, self.costmapCB)
+        rospy.Subscriber(self.costmap_name + "/costmap_updates", OccupancyGridUpdate, self.updatesCB)
+
+        self.resolution = rospy.get_param(costmap_name + "/resolution")
+
+        while not rospy.is_shutdown():
+            time.sleep(0.5)
+            os.system("clear")
+            for pt in self.pts:
+                i = self.w * pt['y'] + pt['x']
+                cost = self.current_map_data[i]
+
+                if cost == -1:
+                    cost = 256
+                else:
+                    cost = int((255.0 * cost) / 100.0)
+
+                print "%d [%d], %d [%d]\t %d" % (pt['x'], pt['x']/macrocell_size, pt['y'], pt['y']/macrocell_size, cost)
+
+    def clickCB(self, msg):
+        x = int((msg.point.x - self.x0) / self.resolution)
+        y = int((msg.point.y - self.y0) / self.resolution)
+        pt = {"x": x, "y": y}
+        if pt in self.pts:
+            self.pts.remove(pt)
+        else:
+            self.pts.append(pt)
+
+    def costmapCB(self, msg):
+        self.w = msg.info.width
+        self.h = msg.info.height
+        self.x0 = msg.info.origin.position.x
+        self.y0 = msg.info.origin.position.y
+        self.current_map_data = msg.data
+
+    def updatesCB(self, msg):
+        self.current_map_data = msg.data
+
+if __name__ == '__main__':
+    if (len(sys.argv) != 2):
+        print "USAGE: rosrun point_to_cell /foor/bar/costmap"
+
+    else:
+        costmap_name = sys.argv[1]
+        ptc = PointToCost(costmap_name)
